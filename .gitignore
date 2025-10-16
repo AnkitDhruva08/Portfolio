@@ -1,0 +1,30 @@
+# --- Python / Django ---
+venv/
+__pycache__/
+*.py[cod]
+*.sqlite3
+.env
+*.log
+
+# --- Frontend (React/Svelte/Vue/etc.) ---
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+
+# --- Backend ---
+backend/__pycache__/
+backend/.env
+
+# --- Build / Cache ---
+dist/
+build/
+*.log
+
+# --- IDE / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Git ---
+.gitignore
