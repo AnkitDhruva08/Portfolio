@@ -1,79 +1,53 @@
 "use client";
-
+import React, { useRef, useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { useInView } from "motion/react";
-import { useRef } from "react";
+
 import { Building2, GraduationCap } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
-
+import {fetchExperiences, fetchEducation } from "./ui/utils";
 export function ExperienceSection() {
   const ref = useRef(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
   const { currentTheme } = useTheme();
+  const [experience, setExperience] = useState<any[]>([]);
+  const [education, setEducation] = useState<any[]>([]);
 
-  const experiences = [
-    {
-      company: "Tech Innovators Inc.",
-      role: "Senior Product Designer",
-      period: "Jan 2023 - Present",
-      description:
-        "Leading design initiatives for flagship products, mentoring junior designers, and establishing design systems.",
-      achievements: [
-        "Redesigned core product increasing user engagement by 45%",
-        "Established company-wide design system used across 8 products",
-        "Led team of 5 designers on major feature launches",
-        "Reduced design-to-development handoff time by 60%",
-      ],
-      skills: ["Figma", "React", "Design Systems", "User Research"],
-    },
-    {
-      company: "Creative Digital Studio",
-      role: "Product Designer",
-      period: "Jun 2021 - Dec 2022",
-      description:
-        "Designed user-centered solutions for diverse clients across e-commerce, SaaS, and mobile applications.",
-      achievements: [
-        "Delivered 25+ client projects with 100% satisfaction rate",
-        "Improved client product conversion rates by average of 30%",
-        "Conducted user research sessions with 200+ participants",
-        "Won 'Best Digital Design' award at Design Summit 2022",
-      ],
-      skills: ["UI/UX", "Prototyping", "Adobe XD", "User Testing"],
-    },
-    {
-      company: "StartUp Ventures",
-      role: "UI/UX Designer",
-      period: "Mar 2020 - May 2021",
-      description:
-        "Contributed to multiple product launches from concept to market, working closely with developers and stakeholders.",
-      achievements: [
-        "Designed MVP for 3 successful product launches",
-        "Created interactive prototypes for investor presentations",
-        "Collaborated with engineering on frontend implementation",
-        "Established user feedback loops and analytics tracking",
-      ],
-      skills: ["Wireframing", "Prototyping", "HTML/CSS", "Analytics"],
-    },
-  ];
+    const loadData = async () => {
+      try {
+        const experienceData = await fetchExperiences();
+        const educationData = await fetchEducation();
+        setEducation(educationData);
+        setExperience(experienceData);
 
-  const education = [
-    {
-      institution: "Design Academy",
-      degree: "Master's in Interaction Design",
-      year: "2019",
-    },
-    {
-      institution: "University of Technology",
-      degree: "Bachelor's in Computer Science",
-      year: "2017",
-    },
-    {
-      institution: "Google UX Certificate",
-      degree: "UX Design Professional Certificate",
-      year: "2020",
-    },
-  ];
+      } catch (error) {
+        console.error(error);
+      }
+    };
+  
+    useEffect(() => {
+      loadData();
+    }, []);
+
+
+  // const education = [
+  //   {
+  //     institution: "Design Academy",
+  //     degree: "Master's in Interaction Design",
+  //     year: "2019",
+  //   },
+  //   {
+  //     institution: "University of Technology",
+  //     degree: "Bachelor's in Computer Science",
+  //     year: "2017",
+  //   },
+  //   {
+  //     institution: "Google UX Certificate",
+  //     degree: "UX Design Professional Certificate",
+  //     year: "2020",
+  //   },
+  // ];
 
   return (
     <section
@@ -141,7 +115,7 @@ export function ExperienceSection() {
 
           {/* Experience Cards */}
           <div className="space-y-12">
-            {experiences.map((exp, index) => (
+            {experience.map((exp, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
@@ -203,7 +177,7 @@ export function ExperienceSection() {
                           letterSpacing: "1px",
                         }}
                       >
-                        {exp.period}
+                        {exp.start_date}
                       </div>
                       <h3
                         className="font-['Cormorant_Garamond'] mb-2"
@@ -213,7 +187,7 @@ export function ExperienceSection() {
                           color: currentTheme.colors.text,
                         }}
                       >
-                        {exp.role}
+                        {exp?.title}
                       </h3>
                       <p
                         className="font-['Montserrat']"
@@ -222,7 +196,7 @@ export function ExperienceSection() {
                           color: currentTheme.colors.textSecondary,
                         }}
                       >
-                        {exp.company}
+                        {exp?.company}
                       </p>
                     </div>
                   </div>
@@ -250,7 +224,7 @@ export function ExperienceSection() {
                       Key Achievements:
                     </h4>
                     <ul className="space-y-3">
-                      {exp.achievements.map((achievement, i) => (
+                      {exp?.achievements.map((achievement, i) => (
                         <li key={i} className="flex items-start gap-3">
                           <div
                             className="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0"
@@ -264,7 +238,7 @@ export function ExperienceSection() {
                               lineHeight: 1.9,
                             }}
                           >
-                            {achievement}
+                            {achievement.description}
                           </span>
                         </li>
                       ))}
@@ -272,7 +246,7 @@ export function ExperienceSection() {
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    {exp.skills.map((skill, i) => (
+                    {exp.technologies_list.map((skill, i) => (
                       <span
                         key={i}
                         className="px-3 py-1 rounded-md font-['Montserrat']"
@@ -350,7 +324,7 @@ export function ExperienceSection() {
                     color: currentTheme.colors.text,
                   }}
                 >
-                  {edu.degree}
+                  {edu?.degree}
                 </h4>
                 <p
                   className="font-['Montserrat'] mb-2"
@@ -359,7 +333,7 @@ export function ExperienceSection() {
                     color: currentTheme.colors.textSecondary,
                   }}
                 >
-                  {edu.institution}
+                  {edu?.institution}
                 </p>
                 <p
                   className="font-['Montserrat']"

@@ -1,11 +1,22 @@
 "use client";
 
+import React, { useRef, useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { useInView } from "motion/react";
-import { useRef, useState } from "react";
-import { Mail, Phone, MapPin, Linkedin, Github, Twitter, Dribbble, Check, Download } from "lucide-react";
-import { toast } from "sonner@2.0.3";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Linkedin,
+  Github,
+  Twitter,
+  Dribbble,
+  Check,
+  Download,
+} from "lucide-react";
+import { toast } from "sonner";
 import { useTheme } from "../contexts/ThemeContext";
+import { fetchPersonalInfo } from "./ui/utils";
 
 export function ContactSection() {
   const ref = useRef(null);
@@ -13,6 +24,22 @@ export function ContactSection() {
   const isInView = useInView(ref, { once: true, amount: 0.2 });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { currentTheme } = useTheme();
+
+  const [personalInfo, setPersonalInfo] = useState<any>(null);
+
+  const loadData = async () => {
+    try {
+      const info = await fetchPersonalInfo();
+      setPersonalInfo(info);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,25 +50,43 @@ export function ContactSection() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Simulate form submission
     await new Promise((resolve) => setTimeout(resolve, 1500));
-    
+
     setIsSubmitting(false);
     toast.success("Message sent! I'll get back to you soon.");
     setFormData({ name: "", email: "", subject: "", message: "" });
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const socialLinks = [
-    { icon: Linkedin, href: "#", name: "LinkedIn" },
-    { icon: Github, href: "#", name: "GitHub" },
-    { icon: Twitter, href: "#", name: "Twitter" },
-    { icon: Dribbble, href: "#", name: "Dribbble" },
-  ];
+    personalInfo?.linkedin_url && {
+      icon: Linkedin,
+      href: personalInfo?.linkedin_url,
+      name: "LinkedIn",
+    },
+    personalInfo?.github_url && {
+      icon: Github,
+      href: personalInfo?.github_url,
+      name: "GitHub",
+    },
+    personalInfo?.twitter_url && {
+      icon: Twitter,
+      href: personalInfo?.twitter_url,
+      name: "Twitter",
+    },
+    personalInfo?.dribbble_url && {
+      icon: Dribbble,
+      href: personalInfo?.dribbble_url,
+      name: "Dribbble",
+    },
+  ].filter(Boolean);
 
   return (
     <section
@@ -81,13 +126,17 @@ export function ContactSection() {
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full pointer-events-none"
         style={{
-          background: currentTheme.type === 'dark' 
-            ? "radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%)"
-            : "radial-gradient(circle, rgba(0, 0, 0, 0.02) 0%, transparent 70%)",
+          background:
+            currentTheme.type === "dark"
+              ? "radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%)"
+              : "radial-gradient(circle, rgba(0, 0, 0, 0.02) 0%, transparent 70%)",
         }}
       />
 
-      <div ref={ref} className="max-w-[1200px] mx-auto px-8 md:px-20 relative z-10">
+      <div
+        ref={ref}
+        className="max-w-[1200px] mx-auto px-8 md:px-20 relative z-10"
+      >
         {/* Section Header */}
         <div className="text-center mb-16">
           <motion.div
@@ -129,7 +178,8 @@ export function ContactSection() {
               color: currentTheme.colors.textSecondary,
             }}
           >
-            Have a project in mind? Let's discuss how I can help bring your vision to life
+            Have a project in mind? Let's discuss how I can help bring your
+            vision to life
           </motion.p>
         </div>
 
@@ -276,7 +326,10 @@ export function ContactSection() {
                   className="w-full py-5 rounded-xl font-['Montserrat'] transition-all duration-300 disabled:opacity-50"
                   style={{
                     background: `linear-gradient(135deg, ${currentTheme.colors.accent} 0%, ${currentTheme.colors.accent}CC 100%)`,
-                    color: currentTheme.type === 'dark' ? currentTheme.colors.primary : currentTheme.colors.background,
+                    color:
+                      currentTheme.type === "dark"
+                        ? currentTheme.colors.primary
+                        : currentTheme.colors.background,
                     fontSize: "16px",
                     fontWeight: 600,
                   }}
@@ -304,7 +357,11 @@ export function ContactSection() {
               }}
               data-obstacle
             >
-              <Mail size={32} color={currentTheme.colors.accent} className="mb-3" />
+              <Mail
+                size={32}
+                color={currentTheme.colors.accent}
+                className="mb-3"
+              />
               <p
                 className="font-['Montserrat'] mb-2"
                 style={{
@@ -323,7 +380,7 @@ export function ContactSection() {
                   color: currentTheme.colors.text,
                 }}
               >
-                hello@johndoe.com
+                {personalInfo?.email}
               </a>
             </div>
 
@@ -337,7 +394,11 @@ export function ContactSection() {
               }}
               data-obstacle
             >
-              <Phone size={32} color={currentTheme.colors.accent} className="mb-3" />
+              <Phone
+                size={32}
+                color={currentTheme.colors.accent}
+                className="mb-3"
+              />
               <p
                 className="font-['Montserrat'] mb-2"
                 style={{
@@ -356,7 +417,7 @@ export function ContactSection() {
                   color: currentTheme.colors.text,
                 }}
               >
-                +1 (234) 567-890
+                {personalInfo?.phone}
               </a>
             </div>
 
@@ -370,7 +431,11 @@ export function ContactSection() {
               }}
               data-obstacle
             >
-              <MapPin size={32} color={currentTheme.colors.accent} className="mb-3" />
+              <MapPin
+                size={32}
+                color={currentTheme.colors.accent}
+                className="mb-3"
+              />
               <p
                 className="font-['Montserrat'] mb-2"
                 style={{
@@ -388,7 +453,7 @@ export function ContactSection() {
                   color: currentTheme.colors.text,
                 }}
               >
-                San Francisco, CA (PST)
+                {personalInfo?.location}
               </p>
             </div>
 
@@ -418,23 +483,34 @@ export function ContactSection() {
                         border: `1px solid ${currentTheme.colors.accent}4D`,
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = currentTheme.colors.accent;
-                        const icon = e.currentTarget.querySelector('svg');
+                        e.currentTarget.style.backgroundColor =
+                          currentTheme.colors.accent;
+                        const icon = e.currentTarget.querySelector("svg");
                         if (icon) {
-                          icon.style.stroke = currentTheme.type === 'dark' ? currentTheme.colors.primary : currentTheme.colors.background;
-                          icon.style.color = currentTheme.type === 'dark' ? currentTheme.colors.primary : currentTheme.colors.background;
+                          icon.style.stroke =
+                            currentTheme.type === "dark"
+                              ? currentTheme.colors.primary
+                              : currentTheme.colors.background;
+                          icon.style.color =
+                            currentTheme.type === "dark"
+                              ? currentTheme.colors.primary
+                              : currentTheme.colors.background;
                         }
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = `${currentTheme.colors.accent}1F`;
-                        const icon = e.currentTarget.querySelector('svg');
+                        const icon = e.currentTarget.querySelector("svg");
                         if (icon) {
                           icon.style.stroke = currentTheme.colors.accent;
                           icon.style.color = currentTheme.colors.accent;
                         }
                       }}
                     >
-                      <Icon size={20} color={currentTheme.colors.accent} style={{ transition: 'all 0.3s' }} />
+                      <Icon
+                        size={20}
+                        color={currentTheme.colors.accent}
+                        style={{ transition: "all 0.3s" }}
+                      />
                     </motion.a>
                   );
                 })}
@@ -466,35 +542,47 @@ export function ContactSection() {
             </div>
 
             {/* Download Resume Button */}
-            <motion.button
-              whileHover={{ y: -2 }}
-              className="w-full py-4 rounded-xl font-['Montserrat'] transition-all duration-300 flex items-center justify-center gap-2"
-              style={{
-                border: `2px solid ${currentTheme.colors.accent}`,
-                color: currentTheme.colors.accent,
-                fontSize: "14px",
-                fontWeight: 700,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = currentTheme.colors.accent;
-                e.currentTarget.style.color = currentTheme.type === 'dark' ? '#0A1128' : '#FFFFFF';
-                const icon = e.currentTarget.querySelector('svg');
-                if (icon) {
-                  icon.style.color = currentTheme.type === 'dark' ? '#0A1128' : '#FFFFFF';
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.color = currentTheme.colors.accent;
-                const icon = e.currentTarget.querySelector('svg');
-                if (icon) {
-                  icon.style.color = currentTheme.colors.accent;
-                }
-              }}
-            >
-              <Download size={18} />
-              Download Resume PDF
-            </motion.button>
+            {personalInfo?.resume_pdf && (
+              <a
+                href={personalInfo.resume_pdf}
+                download
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <motion.button
+                  whileHover={{ y: -2 }}
+                  className="w-full py-4 rounded-xl font-['Montserrat'] transition-all duration-300 flex items-center justify-center gap-2"
+                  style={{
+                    border: `2px solid ${currentTheme.colors.accent}`,
+                    color: currentTheme.colors.accent,
+                    fontSize: "14px",
+                    fontWeight: 700,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor =
+                      currentTheme.colors.accent;
+                    e.currentTarget.style.color =
+                      currentTheme.type === "dark" ? "#0A1128" : "#FFFFFF";
+                    const icon = e.currentTarget.querySelector("svg");
+                    if (icon) {
+                      icon.style.color =
+                        currentTheme.type === "dark" ? "#0A1128" : "#FFFFFF";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = currentTheme.colors.accent;
+                    const icon = e.currentTarget.querySelector("svg");
+                    if (icon) {
+                      icon.style.color = currentTheme.colors.accent;
+                    }
+                  }}
+                >
+                  <Download size={18} />
+                  Download Resume PDF
+                </motion.button>
+              </a>
+            )}
           </motion.div>
         </div>
       </div>

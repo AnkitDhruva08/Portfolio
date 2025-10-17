@@ -1,9 +1,10 @@
 "use client";
-
+import React, {useState, useRef, useEffect} from "react";
 import { motion } from "motion/react";
 import { useInView } from "motion/react";
-import { useRef, useState } from "react";
 import { useTheme } from "../contexts/ThemeContext";
+import { Server, Code, Plug, Database, Settings } from "lucide-react";
+import { fetchPersonalInfo, fetchProjects, fetchCoreExpertise, fetchTimeline, fetchSkills, fetchProjectCategories } from "./ui/utils";
 
 export function WorkSection() {
   const ref = useRef(null);
@@ -11,52 +12,37 @@ export function WorkSection() {
   const isInView = useInView(ref, { once: true, amount: 0.2 });
   const [activeFilter, setActiveFilter] = useState("All");
   const { currentTheme } = useTheme();
+  const [projects, setProjects] = useState<any[]>([]);
+  const [expertise, setExpertise] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
 
-  const filters = ["All", "Web Design", "Mobile Apps", "Branding", "UI/UX"];
+  // function for load data
+  const loadData = async () => {
+    try {
+      const projs = await fetchProjects();
+      const expert = await fetchCoreExpertise();
+      const categoriesData = await fetchProjectCategories();
+      setProjects(projs);
+      setExpertise(expert);
+      setCategories(categoriesData);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  const projects = [
-    {
-      category: "Web Design",
-      title: "E-Commerce Platform",
-      description: "A modern e-commerce solution with seamless checkout experience",
-      image: "https://images.unsplash.com/photo-1676792519027-7c42006d7b4a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjB3ZWIlMjBkZXNpZ258ZW58MXx8fHwxNzU5OTQwNjAwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      tech: ["React", "Node.js", "Tailwind"],
-      featured: true,
-    },
-    {
-      category: "Mobile Apps",
-      title: "Fitness Tracking App",
-      description: "Mobile app for tracking workouts and nutrition goals",
-      image: "https://images.unsplash.com/photo-1658953229625-aad99d7603b4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2JpbGUlMjBhcHAlMjBpbnRlcmZhY2V8ZW58MXx8fHwxNzU5ODcyNjEwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      tech: ["React Native", "Firebase", "Redux"],
-    },
-    {
-      category: "Branding",
-      title: "Startup Brand Identity",
-      description: "Complete brand identity design for tech startup",
-      image: "https://images.unsplash.com/photo-1548094990-c16ca90f1f0d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxicmFuZGluZyUyMGRlc2lnbnxlbnwxfHx8fDE3NTk5NzcxNzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      tech: ["Illustrator", "Figma", "Photoshop"],
-    },
-    {
-      category: "UI/UX",
-      title: "SaaS Dashboard",
-      description: "Analytics dashboard with real-time data visualization",
-      image: "https://images.unsplash.com/photo-1629494893504-d41e26a02631?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx1aSUyMGRlc2lnbiUyMG1vY2t1cHxlbnwxfHx8fDE3NTk5NzQ3MjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      tech: ["Vue.js", "D3.js", "TypeScript"],
-    },
-    {
-      category: "Web Design",
-      title: "Portfolio Website",
-      description: "Creative portfolio for photographer showcasing their work",
-      image: "https://images.unsplash.com/photo-1676792519027-7c42006d7b4a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjB3ZWIlMjBkZXNpZ258ZW58MXx8fHwxNzU5OTQwNjAwfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      tech: ["Next.js", "Sanity", "Tailwind"],
-    },
-  ];
+  useEffect(() => {
+    loadData();
+  }, []);
 
+  // Generate filter options from categories (using name field)
+  const filters = ["All", ...categories.map((category) => category.name)];
+
+  // Filtered projects based on active category
   const filteredProjects =
-    activeFilter === "All"
-      ? projects
-      : projects.filter((p) => p.category === activeFilter);
+    activeFilter === "All" 
+      ? projects 
+      : projects.filter((p) => p.category_name === activeFilter);
+  
 
   return (
     <section
@@ -111,7 +97,7 @@ export function WorkSection() {
           </motion.p>
         </div>
 
-        {/* Filter Tabs */}
+        {/* Filter Tabs - Now using categories */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={isInView ? { opacity: 1 } : {}}
@@ -171,7 +157,7 @@ export function WorkSection() {
                   {/* Project Image */}
                   <div className="relative overflow-hidden aspect-[16/10]">
                     <img
-                      src={project.image}
+                      src={project.thumbnail}
                       alt={project.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-600"
                     />
@@ -219,7 +205,7 @@ export function WorkSection() {
                         letterSpacing: "1.5px",
                       }}
                     >
-                      {project.category}
+                      {project.category_name} {/* Updated to use category_name */}
                     </div>
 
                     <h3
@@ -246,7 +232,7 @@ export function WorkSection() {
                     </p>
 
                     <div className="flex flex-wrap gap-2 mb-6">
-                      {project.tech.map((tech, i) => (
+                      {project.technologies_list.map((tech, i) => (
                         <span
                           key={i}
                           className="px-3 py-1 rounded-md font-['Montserrat']"

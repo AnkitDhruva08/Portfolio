@@ -1,16 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Menu, X } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
 import { ThemeSwitcher } from "./ThemeSwitcher";
+import { fetchPersonalInfo } from "./ui/utils";
 
 export function Navigation() {
   const { currentTheme } = useTheme();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
+  const [personalInfo, setPersonalInfo] = useState<{ name?: string }>({});
+
+  // Load personal info from backend
+  const loadPersonalInfo = async () => {
+    try {
+      const data = await fetchPersonalInfo();
+      setPersonalInfo(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    loadPersonalInfo();
+  }, []);
 
   const navLinks = [
     { name: "Home", href: "#home" },
@@ -22,10 +38,7 @@ export function Navigation() {
   ];
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -33,9 +46,17 @@ export function Navigation() {
   const handleLinkClick = (href: string) => {
     setIsMobileMenuOpen(false);
     const element = document.querySelector(href);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
+    if (element) element.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Get initials from name if available
+  const getInitials = (name: string | undefined) => {
+    if (!name) return 
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
   };
 
   return (
@@ -49,11 +70,13 @@ export function Navigation() {
           backgroundColor: `${currentTheme.colors.primary}EB`,
           backdropFilter: "blur(24px)",
           borderBottom: `1px solid ${currentTheme.colors.accent}26`,
-          boxShadow: isScrolled ? `0 4px 20px ${currentTheme.colors.primary}4D` : "none",
+          boxShadow: isScrolled
+            ? `0 4px 20px ${currentTheme.colors.primary}4D`
+            : "none",
         }}
       >
         <div className="max-w-[1400px] mx-auto px-8 md:px-20 h-16 md:h-[72px] flex items-center justify-between">
-          {/* Logo */}
+          {/* Logo / Name Initials */}
           <motion.div
             className="relative group cursor-pointer"
             whileHover={{ scale: 1.05 }}
@@ -73,7 +96,7 @@ export function Navigation() {
                 e.currentTarget.style.textShadow = "0 0 20px rgba(212, 175, 55, 0)";
               }}
             >
-              JD
+              {getInitials(personalInfo.name)}
             </span>
             <div
               className="absolute -bottom-1 left-0 w-5 h-0.5"
@@ -98,17 +121,16 @@ export function Navigation() {
                   className="font-['Montserrat'] uppercase tracking-[1.5px] transition-colors duration-300"
                   style={{
                     fontSize: "14px",
-                    color: activeSection === link.name.toLowerCase() ? currentTheme.colors.text : currentTheme.colors.textSecondary,
+                    color:
+                      activeSection === link.name.toLowerCase()
+                        ? currentTheme.colors.text
+                        : currentTheme.colors.textSecondary,
                   }}
                 >
                   {link.name}
                 </span>
                 <div
                   className="absolute -bottom-2 left-0 h-0.5 w-0 group-hover:w-full transition-all duration-300"
-                  style={{ backgroundColor: currentTheme.colors.accent }}
-                />
-                <div
-                  className="absolute -top-3 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   style={{ backgroundColor: currentTheme.colors.accent }}
                 />
               </a>
@@ -125,15 +147,14 @@ export function Navigation() {
               className="font-['Montserrat'] px-7 py-3 rounded-md transition-all duration-300"
               style={{
                 backgroundColor: currentTheme.colors.accent,
-                color: currentTheme.type === 'dark' ? currentTheme.colors.primary : currentTheme.colors.accent === '#2C3E50' ? '#F5F1E8' : currentTheme.colors.primary,
+                color:
+                  currentTheme.type === "dark"
+                    ? currentTheme.colors.primary
+                    : currentTheme.colors.accent === "#2C3E50"
+                    ? "#F5F1E8"
+                    : currentTheme.colors.primary,
                 fontSize: "14px",
                 fontWeight: 600,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = `0 6px 24px ${currentTheme.colors.accent}66`;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "none";
               }}
             >
               Let's Talk
@@ -198,8 +219,7 @@ export function Navigation() {
                   />
                 </motion.a>
               ))}
-              
-              {/* Theme Switcher in Mobile Menu */}
+
               <div className="pt-8">
                 <ThemeSwitcher />
               </div>

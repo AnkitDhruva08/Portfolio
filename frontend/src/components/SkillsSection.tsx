@@ -1,84 +1,78 @@
 "use client";
 
+import React,{ useRef, useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { useInView } from "motion/react";
-import { useRef } from "react";
-import { Code, Palette, Server, Smartphone, Layers, Database } from "lucide-react";
+import { Code, Palette, Server, Smartphone, Layers, Database, Cpu, Terminal, Box, Cloud } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
+import {  fetchSkills } from "./ui/utils";
 
 export function SkillsSection() {
   const ref = useRef(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.2 });
   const { currentTheme } = useTheme();
+  const [skillSet, setSkillSet] = useState<any[]>([]);
 
-  const skillCategories = [
-    {
-      icon: Code,
-      title: "Frontend",
-      skills: [
-        { name: "React/Next.js", level: 5 },
-        { name: "TypeScript", level: 5 },
-        { name: "Tailwind CSS", level: 5 },
-        { name: "Vue.js", level: 4 },
-      ],
-    },
-    {
-      icon: Palette,
-      title: "Design",
-      skills: [
-        { name: "Figma", level: 5 },
-        { name: "Adobe XD", level: 4 },
-        { name: "Photoshop", level: 4 },
-        { name: "Illustrator", level: 4 },
-      ],
-    },
-    {
-      icon: Server,
-      title: "Backend",
-      skills: [
-        { name: "Node.js", level: 4 },
-        { name: "Python", level: 3 },
-        { name: "REST APIs", level: 4 },
-        { name: "GraphQL", level: 3 },
-      ],
-    },
-    {
-      icon: Smartphone,
-      title: "Mobile",
-      skills: [
-        { name: "React Native", level: 4 },
-        { name: "Flutter", level: 3 },
-        { name: "iOS Design", level: 4 },
-        { name: "Android Design", level: 4 },
-      ],
-    },
-    {
-      icon: Layers,
-      title: "UI/UX",
-      skills: [
-        { name: "User Research", level: 5 },
-        { name: "Prototyping", level: 5 },
-        { name: "Wireframing", level: 5 },
-        { name: "Design Systems", level: 4 },
-      ],
-    },
-    {
-      icon: Database,
-      title: "Tools",
-      skills: [
-        { name: "Git/GitHub", level: 5 },
-        { name: "VS Code", level: 5 },
-        { name: "Jira", level: 4 },
-        { name: "Notion", level: 4 },
-      ],
-    },
-  ];
+  const loadData = async () => {
+    try {
+      const skill = await fetchSkills();
+      setSkillSet(skill)
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  const tools = [
-    "React", "Figma", "TypeScript", "Node.js", "Tailwind", "Next.js",
-    "Adobe XD", "Git", "VS Code", "Photoshop", "Vue.js", "Firebase"
-  ];
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // Group skills by category from backend data
+  const groupSkillsByCategory = () => {
+    const grouped: { [key: string]: any[] } = {};
+    
+    skillSet.forEach(skill => {
+      if (!grouped[skill.category_display]) {
+        grouped[skill.category_display] = [];
+      }
+      grouped[skill.category_display].push({
+        name: skill.name,
+        level: skill.proficiency,
+        category: skill.category
+      });
+    });
+    
+    return grouped;
+  };
+
+  const skillCategoriesData = groupSkillsByCategory();
+
+  // Map category names to icons
+  const getCategoryIcon = (category: string) => {
+    const iconMap: { [key: string]: any } = {
+      'Frontend': Code,
+      'Backend': Server,
+      'Design': Palette,
+      'Mobile': Smartphone,
+      'UI/UX': Layers,
+      'Tools': Database,
+      'DevOps': Cpu,
+      'Database': Database,
+      'Cloud': Cloud,
+      'Other': Box
+    };
+    return iconMap[category] || Terminal; // Fallback icon
+  };
+
+  // Convert grouped data to array format for rendering
+  const skillCategories = Object.entries(skillCategoriesData).map(([category, skills]) => ({
+    icon: getCategoryIcon(category),
+    title: category,
+    skills: skills
+  }));
+
+  // Extract unique tools for the tools section
+  const tools = [...new Set(skillSet.map(skill => skill.name))];
 
   return (
     <section

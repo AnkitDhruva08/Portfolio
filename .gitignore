@@ -6,9 +6,10 @@ __pycache__/
 .env
 *.log
 
-# --- Frontend (React/Svelte/Vue/etc.) ---
+# --- Frontend (React / Svelte / Vue etc.) ---
 frontend/node_modules/
 frontend/dist/
+frontend/build/
 frontend/.env
 
 # --- Backend ---
@@ -28,3 +29,4 @@ Thumbs.db
 
 # --- Git ---
 .gitignore
+frontend/.env

@@ -1,29 +1,66 @@
 "use client";
 
+import React, {useState, useEffect} from "react";
 import { motion } from "motion/react";
 import { useInView } from "motion/react";
 import { useRef } from "react";
-import { Code, Palette, Smartphone, Layers } from "lucide-react";
+import { Code, Palette, Smartphone, Layers, Server,  Plug, Database, Settings } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
+import { fetchPersonalInfo, fetchProjects, fetchCoreExpertise, fetchTimeline } from "./ui/utils";
 
 export function AboutSection() {
   const ref = useRef(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.3 });
   const { currentTheme } = useTheme();
+  const [personalInfo, setPersonalInfo] = useState<any>(null);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [expertise, setExpertise] = useState<any[]>([]);
+  const [timeLine, setTimeLine] = useState<any[]>([]);
 
-  const skills = [
-    { icon: Code, name: "Frontend Development" },
-    { icon: Palette, name: "UI/UX Design" },
-    { icon: Smartphone, name: "Responsive Design" },
-    { icon: Layers, name: "Design Systems" },
-  ];
+  const loadData = async () => {
+      try {
+        const info = await fetchPersonalInfo();
+        const projs = await fetchProjects();
+        const expert = await fetchCoreExpertise();
+        const time = await fetchTimeline();
+        setPersonalInfo(info);
+        setProjects(projs);
+        setExpertise(expert);
+        setTimeLine(time)
+      } catch (error) {
+        console.error(error);
+      }
+    };
+  
+    useEffect(() => {
+      loadData();
+    }, []);
 
+ 
+// stasta cards for experience and project
   const stats = [
-    { number: "5+", label: "Years Experience" },
-    { number: "50+", label: "Projects Completed" },
-    { number: "15", label: "Awards Won" },
-    { number: "30+", label: "Happy Clients" },
+    {
+      number: (personalInfo?.years_experience || 0) + "+",
+      label: "Years Experience",
+      icon: "⚡",
+    },
+    {
+      number: (personalInfo?.projects_completed || 0) + "+",
+      label: "Projects Completed",
+      icon: "🚀",
+    },
+    {
+      number: (personalInfo?.happy_clients || 0) + "+",
+      label: "Happy Clients",
+      icon: "⭐",
+    },
+
+    {
+      number: (personalInfo?.awards_won || 0) + "+",
+      label: "Happy Clients",
+      icon: "⭐",
+    },
   ];
 
   const timeline = [
@@ -71,7 +108,7 @@ export function AboutSection() {
               lineHeight: 1.3,
             }}
           >
-            Building Digital Experiences That Matter
+            {personalInfo?.about_heading}
           </motion.h2>
 
           <motion.p
@@ -84,7 +121,7 @@ export function AboutSection() {
               color: currentTheme.colors.textSecondary,
             }}
           >
-            Passionate about creating meaningful digital experiences
+            {personalInfo?.about_description}
           </motion.p>
         </div>
 
@@ -117,7 +154,7 @@ export function AboutSection() {
                 className="absolute left-0 top-0 bottom-0 w-0.5"
                 style={{ backgroundColor: currentTheme.colors.accent }}
               />
-              {timeline.map((item, index) => (
+              {timeLine.map((item, index) => (
                 <motion.div
                   key={index}
                   initial={{ opacity: 0, x: -20 }}
@@ -151,7 +188,7 @@ export function AboutSection() {
                       color: currentTheme.colors.text,
                     }}
                   >
-                    {item.milestone}
+                    {item?.title}
                   </div>
                 </motion.div>
               ))}
@@ -173,9 +210,7 @@ export function AboutSection() {
                   lineHeight: 1.85,
                 }}
               >
-                With over 5 years of experience in digital design and development, I've had the
-                privilege of working with startups and established companies to create products that
-                users love and businesses depend on.
+                {personalInfo?.about_detail}
               </p>
               <p
                 className="font-['Montserrat']"
@@ -185,53 +220,98 @@ export function AboutSection() {
                   lineHeight: 1.85,
                 }}
               >
-                My approach combines strategic thinking with meticulous attention to detail,
-                ensuring every pixel serves a purpose and every interaction feels natural.
+                {personalInfo?.hero_description}
               </p>
             </div>
 
             {/* Skills Highlight */}
-            <div
-              className="p-8 rounded-xl mb-12"
-              style={{
-                backgroundColor: `${currentTheme.colors.accent}14`,
-                borderLeft: `4px solid ${currentTheme.colors.accent}`,
+            {/* Skills Highlight - Enhanced Version */}
+<div
+  className="p-8 rounded-xl mb-12"
+  style={{
+    backgroundColor: `${currentTheme.colors.accent}14`,
+    borderLeft: `4px solid ${currentTheme.colors.accent}`,
+  }}
+  data-obstacle
+>
+  <div
+    className="font-['Montserrat'] mb-6"
+    style={{
+      fontSize: "14px",
+      fontWeight: 600,
+      color: currentTheme.colors.accent,
+    }}
+  >
+    Core Expertise
+  </div>
+  <div className="grid grid-cols-2 gap-4">
+    {expertise && expertise.length > 0 ? (
+      expertise.map((skill) => {
+        // Safe icon mapping with fallbacks
+        const getIconComponent = (iconName: string) => {
+          const iconMap: { [key: string]: any } = {
+            'code': Code,
+            'palette': Palette,
+            'smartphone': Smartphone,
+            'layers': Layers,
+            'server': Server,
+            'plug': Plug,
+            'database': Database,
+            'settings': Settings
+          };
+          
+          // Return the icon if found, otherwise use a default icon
+          return iconMap[iconName?.toLowerCase()] || Settings;
+        };
+
+        const IconComponent = getIconComponent(skill.icon_name);
+        
+        return (
+          <motion.div
+            key={skill.id}
+            whileHover={{ scale: 1.05, y: -2 }}
+            className="flex items-center gap-3 p-3 rounded-lg transition-all duration-300 cursor-pointer"
+            style={{
+              backgroundColor: `${currentTheme.colors.accent}08`,
+              border: `1px solid ${currentTheme.colors.accent}25`,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = `${currentTheme.colors.accent}15`;
+              e.currentTarget.style.borderColor = `${currentTheme.colors.accent}40`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = `${currentTheme.colors.accent}08`;
+              e.currentTarget.style.borderColor = `${currentTheme.colors.accent}25`;
+            }}
+          >
+            <IconComponent 
+              size={22} 
+              color={currentTheme.colors.accent} 
+              className="flex-shrink-0"
+            />
+            <span
+              className="font-['Montserrat'] font-medium truncate"
+              style={{ 
+                color: currentTheme.colors.text,
+                fontSize: "14px"
               }}
-              data-obstacle
+              title={skill.title} // Tooltip for long text
             >
-              <div
-                className="font-['Montserrat'] mb-6"
-                style={{
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  color: currentTheme.colors.accent,
-                }}
-              >
-                Core Expertise
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                {skills.map((skill, index) => {
-                  const Icon = skill.icon;
-                  return (
-                    <div
-                      key={index}
-                      className="flex items-center gap-3 hover:scale-105 transition-transform duration-300"
-                    >
-                      <Icon size={24} color={currentTheme.colors.accent} />
-                      <span
-                        className="font-['Montserrat']"
-                        style={{
-                          fontSize: "14px",
-                          color: currentTheme.colors.text,
-                        }}
-                      >
-                        {skill.name}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+              {skill.title}
+            </span>
+          </motion.div>
+        );
+      })
+    ) : (
+      // Fallback UI if no expertise data
+      <div className="col-span-2 text-center py-4">
+        <span style={{ color: currentTheme.colors.textSecondary }}>
+          No expertise data available
+        </span>
+      </div>
+    )}
+  </div>
+</div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-6 mb-12">

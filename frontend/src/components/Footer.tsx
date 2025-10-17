@@ -1,12 +1,29 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Linkedin, Github, Twitter, Dribbble, Heart } from "lucide-react";
 import { useTheme } from "../contexts/ThemeContext";
+import { fetchPersonalInfo } from "./ui/utils";
 
 export function Footer() {
   const { currentTheme } = useTheme();
-  
+
+  const [personalInfo, setPersonalInfo] = useState<any>(null);
+
+  const loadData = async () => {
+    try {
+      const info = await fetchPersonalInfo();
+      setPersonalInfo(info);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
   const quickLinks = [
     { name: "Home", href: "#home" },
     { name: "About", href: "#about" },
@@ -17,11 +34,27 @@ export function Footer() {
   ];
 
   const socialLinks = [
-    { icon: Linkedin, href: "#" },
-    { icon: Github, href: "#" },
-    { icon: Twitter, href: "#" },
-    { icon: Dribbble, href: "#" },
-  ];
+    personalInfo?.linkedin_url && {
+      icon: Linkedin,
+      href: personalInfo?.linkedin_url,
+      name: "LinkedIn",
+    },
+    personalInfo?.github_url && {
+      icon: Github,
+      href: personalInfo?.github_url,
+      name: "GitHub",
+    },
+    personalInfo?.twitter_url && {
+      icon: Twitter,
+      href: personalInfo?.twitter_url,
+      name: "Twitter",
+    },
+    personalInfo?.dribbble_url && {
+      icon: Dribbble,
+      href: personalInfo?.dribbble_url,
+      name: "Dribbble",
+    },
+  ].filter(Boolean);
 
   return (
     <footer
@@ -32,13 +65,13 @@ export function Footer() {
       }}
     >
       {/* Decorative accent line */}
-      <div 
+      <div
         className="absolute top-0 left-1/2 transform -translate-x-1/2 h-1 w-32 rounded-full"
         style={{
           background: `linear-gradient(90deg, transparent, ${currentTheme.colors.accent}, transparent)`,
         }}
       />
-      
+
       <div className="max-w-[1400px] mx-auto px-8 md:px-20">
         {/* Main Footer Content */}
         <div className="grid md:grid-cols-[40%_30%_30%] gap-12 mb-16">
@@ -52,7 +85,7 @@ export function Footer() {
                 color: currentTheme.colors.text,
               }}
             >
-              John Doe
+              {personalInfo?.name}
             </h2>
             <p
               className="font-['Montserrat'] max-w-xs mb-7"
@@ -62,7 +95,7 @@ export function Footer() {
                 lineHeight: 1.6,
               }}
             >
-              Crafting digital experiences with precision, passion, and purpose.
+              {personalInfo?.about_description}
             </p>
 
             {/* Social Icons */}
@@ -85,7 +118,8 @@ export function Footer() {
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.color = `${currentTheme.colors.accent}99`;
-                      e.currentTarget.style.filter = "drop-shadow(0 0 0px transparent)";
+                      e.currentTarget.style.filter =
+                        "drop-shadow(0 0 0px transparent)";
                     }}
                   >
                     <Icon size={20} />
@@ -134,7 +168,8 @@ export function Footer() {
                       e.currentTarget.style.transform = "translateX(4px)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.color = currentTheme.colors.textSecondary;
+                      e.currentTarget.style.color =
+                        currentTheme.colors.textSecondary;
                       e.currentTarget.style.transform = "translateX(0)";
                     }}
                   >
@@ -199,7 +234,10 @@ export function Footer() {
                 className="px-6 py-3 rounded-r-lg font-['Montserrat'] hover:brightness-110 transition-all duration-300"
                 style={{
                   backgroundColor: currentTheme.colors.accent,
-                  color: currentTheme.type === 'dark' ? currentTheme.colors.primary : currentTheme.colors.background,
+                  color:
+                    currentTheme.type === "dark"
+                      ? currentTheme.colors.primary
+                      : currentTheme.colors.background,
                   fontSize: "14px",
                   fontWeight: 600,
                 }}
@@ -229,27 +267,29 @@ export function Footer() {
           }}
         >
           <div className="flex flex-wrap gap-4 justify-center">
-            {["Privacy Policy", "Terms of Service", "Cookies"].map((item, index) => (
-              <a
-                key={item}
-                href="#"
-                className="font-['Montserrat'] transition-colors duration-300"
-                style={{
-                  fontSize: "12px",
-                  fontWeight: 300,
-                  color: `${currentTheme.colors.textSecondary}99`,
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = currentTheme.colors.accent;
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = `${currentTheme.colors.textSecondary}99`;
-                }}
-              >
-                {index > 0 && <span className="mr-4">•</span>}
-                {item}
-              </a>
-            ))}
+            {["Privacy Policy", "Terms of Service", "Cookies"].map(
+              (item, index) => (
+                <a
+                  key={item}
+                  href="#"
+                  className="font-['Montserrat'] transition-colors duration-300"
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 300,
+                    color: `${currentTheme.colors.textSecondary}99`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = currentTheme.colors.accent;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = `${currentTheme.colors.textSecondary}99`;
+                  }}
+                >
+                  {index > 0 && <span className="mr-4">•</span>}
+                  {item}
+                </a>
+              )
+            )}
           </div>
 
           <p
@@ -261,7 +301,12 @@ export function Footer() {
             }}
           >
             Designed & Developed with{" "}
-            <Heart size={14} fill={currentTheme.colors.accent} color={currentTheme.colors.accent} /> by John Doe
+            <Heart
+              size={14}
+              fill={currentTheme.colors.accent}
+              color={currentTheme.colors.accent}
+            />{" "}
+            by {personalInfo?.name}
           </p>
         </div>
       </div>
