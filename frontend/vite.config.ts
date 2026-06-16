@@ -12,13 +12,13 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    outDir: 'build',        // ✅ Vercel output directory set to 'build'
-    sourcemap: false,        // ✅ Disable sourcemaps in production (smaller bundle)
+    outDir: 'build',
+    sourcemap: false,
     chunkSizeWarningLimit: 1000,
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom'],   // ✅ Split vendor chunk for better caching
+          vendor: ['react', 'react-dom'],
         },
       },
     },
